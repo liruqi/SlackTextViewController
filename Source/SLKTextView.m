@@ -20,8 +20,6 @@
 
 #import "SLKUIConstants.h"
 
-#import "TGStringUtils.h"
-
 NSString * const SLKTextViewTextWillChangeNotification =            @"SLKTextViewTextWillChangeNotification";
 NSString * const SLKTextViewContentSizeDidChangeNotification =      @"SLKTextViewContentSizeDidChangeNotification";
 NSString * const SLKTextViewSelectedRangeDidChangeNotification =    @"SLKTextViewSelectedRangeDidChangeNotification";
@@ -31,6 +29,14 @@ NSString * const SLKTextViewDidShakeNotification =                  @"SLKTextVie
 NSString * const SLKTextViewPastedItemContentType =                 @"SLKTextViewPastedItemContentType";
 NSString * const SLKTextViewPastedItemMediaType =                   @"SLKTextViewPastedItemMediaType";
 NSString * const SLKTextViewPastedItemData =                        @"SLKTextViewPastedItemData";
+
+NSString *TGLocalized(NSString *s) {
+    NSString* str = [[NSBundle mainBundle] localizedStringForKey:s value:nil table:nil];
+    if (str) {
+        return str;
+    }
+    return [[s componentsSeparatedByString:@"."] lastObject];
+}
 
 @interface SLKTextView ()
 
@@ -189,7 +195,7 @@ NSString * const SLKTextViewPastedItemData =                        @"SLKTextVie
 #pragma mark UIPickerViewDelegate
 - (nullable NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component 
 {
-    NSArray *components = [TGStringUtils stringComponentsForMessageTimerSeconds:[self.selfDestructValues[row] intValue]];
+    NSArray *components = [SLKTextView stringComponentsForMessageTimerSeconds:[self.selfDestructValues[row] intValue]];
     return [components componentsJoinedByString:@" "];
 }
 
@@ -255,7 +261,7 @@ NSString * const SLKTextViewPastedItemData =                        @"SLKTextVie
         self.clockButton.hidden = NO;
         NSString *timerText = @"⌛";
         if (_selfDestructTimer > 0) {
-            NSArray *components = [TGStringUtils stringComponentsForMessageTimerSeconds: _selfDestructTimer];
+            NSArray *components = [SLKTextView stringComponentsForMessageTimerSeconds: _selfDestructTimer];
             if ([components componentsJoinedByString:@""].length > 1) {
                 timerText = [components componentsJoinedByString:@""];
             }
@@ -1114,5 +1120,108 @@ SLKPastableMediaType SLKPastableMediaTypeFromNSString(NSString *string)
     
     _placeholderLabel = nil;
 }
+
+
++ (NSArray *)stringComponentsForMessageTimerSeconds:(NSUInteger)seconds
+{
+    NSString *first = @"";
+    NSString *second = @"";
+    
+    if (seconds < 60)
+    {
+        int number = seconds;
+        
+        NSString *format = TGLocalized(@"MessageTimer.%@s");
+        
+        
+        NSRange range = [format rangeOfString:@"%@"];
+        if (range.location != NSNotFound)
+        {
+            first = [[NSString alloc] initWithFormat:@"%d", number];
+            second = [[format substringFromIndex:range.location + range.length] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+    }
+    else if (seconds < 60 * 60)
+    {
+        int number = seconds / 60;
+        
+        NSString *format = TGLocalized(@"MessageTimer.%@m");
+        
+        NSRange range = [format rangeOfString:@"%@"];
+        if (range.location != NSNotFound)
+        {
+            first = [[NSString alloc] initWithFormat:@"%d", number];
+            second = [[format substringFromIndex:range.location + range.length] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+    }
+    else if (seconds < 60 * 60 * 24)
+    {
+        int number = seconds / (60 * 60);
+        
+        NSString *format = TGLocalized(@"MessageTimer.%@h");
+        
+        NSRange range = [format rangeOfString:@"%@"];
+        if (range.location != NSNotFound)
+        {
+            first = [[NSString alloc] initWithFormat:@"%d", number];
+            second = [[format substringFromIndex:range.location + range.length] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+    }
+    else if (seconds < 60 * 60 * 24 * 7)
+    {
+        int number = seconds / (60 * 60 * 24);
+        
+        NSString *format = TGLocalized(@"MessageTimer.%@d");
+        
+        NSRange range = [format rangeOfString:@"%@"];
+        if (range.location != NSNotFound)
+        {
+            first = [[NSString alloc] initWithFormat:@"%d", number];
+            second = [[format substringFromIndex:range.location + range.length] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+    }
+    else if (seconds < 60 * 60 * 24 * 30)
+    {
+        int number = seconds / (60 * 60 * 24 * 7);
+        
+        NSString *format = TGLocalized(@"MessageTimer.%@w");
+        
+        NSRange range = [format rangeOfString:@"%@"];
+        if (range.location != NSNotFound)
+        {
+            first = [[NSString alloc] initWithFormat:@"%d", number];
+            second = [[format substringFromIndex:range.location + range.length] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+    }
+    else if (seconds < 60 * 60 * 24 * 365)
+    {
+        int number = (int)ceilf((seconds / (60 * 60 * 24 * 30.5f)));
+        
+        NSString *format = TGLocalized(@"MessageTimer.%@m");
+        
+        NSRange range = [format rangeOfString:@"%@"];
+        if (range.location != NSNotFound)
+        {
+            first = [[NSString alloc] initWithFormat:@"%d", number];
+            second = [[format substringFromIndex:range.location + range.length] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+    }
+    else
+    {
+        int number = seconds / (60 * 60 * 24 * 365);
+        
+        NSString *format = TGLocalized(@"MessageTimer.%@y");
+        
+        NSRange range = [format rangeOfString:@"%@"];
+        if (range.location != NSNotFound)
+        {
+            first = [[NSString alloc] initWithFormat:@"%d", number];
+            second = [[format substringFromIndex:range.location + range.length] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+    }
+    
+    return @[first, second];
+}
+
 
 @end
