@@ -20,6 +20,8 @@
 
 #import "SLKUIConstants.h"
 
+#import "TGStringUtils.h"
+
 NSString * const SLKTextViewTextWillChangeNotification =            @"SLKTextViewTextWillChangeNotification";
 NSString * const SLKTextViewContentSizeDidChangeNotification =      @"SLKTextViewContentSizeDidChangeNotification";
 NSString * const SLKTextViewSelectedRangeDidChangeNotification =    @"SLKTextViewSelectedRangeDidChangeNotification";
@@ -48,6 +50,9 @@ NSString * const SLKTextViewPastedItemData =                        @"SLKTextVie
 
 // Used for detecting if the scroll indicator was previously flashed
 @property (nonatomic) BOOL didFlashScrollIndicators;
+
+//@property (nonatomic, strong) TGPickerSheet *pickerSheet;
+@property (nonatomic, strong) NSArray* selfDestructValues;
 
 @end
 
@@ -88,8 +93,118 @@ NSString * const SLKTextViewPastedItemData =                        @"SLKTextVie
     [self slk_registerNotifications];
     
     [self addObserver:self forKeyPath:NSStringFromSelector(@selector(contentSize)) options:NSKeyValueObservingOptionNew context:NULL];
+    
+    self.clockButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    //    self.clockButton.backgroundColor = [UIColor redColor];
+    [self.clockButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+    [self.clockButton addTarget:self action:@selector(timerButtonPressed) forControlEvents:UIControlEventTouchUpInside];
+    [self addSubview:self.clockButton];
 }
 
+- (void)timerButtonPressed
+{
+    UIViewController *responder = [self viewController];
+    if (! responder) {
+        return;
+    }
+    
+    // default to 0
+    
+    NSNumber* timer = [responder performSelector:@selector(defaultDestructTimer) ];
+
+    _selfDestructTimer = [timer intValue];
+    
+    if (_selfDestructTimer < 0) {
+        return;
+    }
+    
+    [self resignFirstResponder];
+
+    NSMutableArray *timerValues = [[NSMutableArray alloc] init];
+    for (int i = 1; i <= 16; i*=2)
+    {
+        [timerValues addObject:@(i)];
+    }
+    [timerValues addObject:@(30)];
+    [timerValues addObject:@(1 * 60)];
+    [timerValues addObject:@(1 * 60 * 60)];
+    [timerValues addObject:@(1 * 60 * 60 * 24)];
+    [timerValues addObject:@(1 * 60 * 60 * 24 * 7)];
+    
+    NSUInteger selectedIndex = 5;
+    if (_selfDestructTimer != 0)
+    {
+        NSInteger closestMatchIndex = 5;
+        NSInteger index = -1;
+        for (NSNumber *nValue in timerValues)
+        {
+            index++;
+            if ([nValue intValue] != 0 && ABS([nValue intValue] - _selfDestructTimer) < ABS([timerValues[closestMatchIndex] intValue] - _selfDestructTimer))
+            {
+                closestMatchIndex = index;
+            }
+        }
+        selectedIndex = closestMatchIndex;
+    }
+    
+    if (self.selfDestructValues.count > 0) return;
+    
+    self.selfDestructValues = timerValues;
+
+    CGFloat height = CGRectGetHeight(responder.view.bounds);
+    UIPickerView* pickerView = [[UIPickerView alloc] initWithFrame:CGRectMake(0, height * 1.5 * 2/ 4.0, CGRectGetWidth(responder.view.bounds), height / 4.0)];
+    pickerView.showsSelectionIndicator = YES;
+    pickerView.backgroundColor = [UIColor whiteColor];
+    pickerView.dataSource = self;
+    pickerView.delegate = self;
+    [pickerView selectRow:selectedIndex inComponent:0 animated:NO];
+
+    [responder.view addSubview:pickerView];
+
+}
+
+- (UIViewController*) viewController {
+    Class vcc = [UIViewController class];
+    // Traverse responder chain. Return first found view controller, which will be the view's view controller.
+
+    UIViewController *responder = self;
+    while ((responder = [responder nextResponder]))
+        if ([responder isKindOfClass: vcc])
+            break;
+    return responder;
+}
+
+#pragma mark UIPickerViewDataSource
+
+// returns the number of 'columns' to display.
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
+    return 1;
+}
+
+// returns the # of rows in each component..
+- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
+    return self.selfDestructValues.count;
+}
+
+#pragma mark UIPickerViewDelegate
+- (nullable NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component 
+{
+    NSArray *components = [TGStringUtils stringComponentsForMessageTimerSeconds:[self.selfDestructValues[row] intValue]];
+    return [components componentsJoinedByString:@" "];
+}
+
+- (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    UIViewController *responder = [self viewController];
+    _selfDestructTimer = [self.selfDestructValues[row] intValue];
+
+    if ([responder respondsToSelector:@selector(setSelfDestructTimer:)]) {
+        [responder performSelector:@selector(setSelfDestructTimer:) withObject: self.selfDestructValues[row]];
+    }
+    
+    [self setNeedsLayout];
+    [pickerView removeFromSuperview];
+    self.selfDestructValues = nil;
+}
 
 #pragma mark - UIView Overrides
 
@@ -118,6 +233,36 @@ NSString * const SLKTextViewPastedItemData =                        @"SLKTextVie
             self.placeholderLabel.frame = [self slk_placeholderRectThatFits:self.bounds];
             [self sendSubviewToBack:self.placeholderLabel];
         }];
+    }
+    
+    CGFloat width = self.bounds.size.width;
+    self.clockButton.frame = CGRectMake(width - 30 - 5, 7, 30, 20);
+    
+    UIViewController *responder = [self viewController];
+    if (! responder) {
+        return;
+    }
+    
+    NSNumber* timer = [responder performSelector:@selector(defaultDestructTimer) ];
+    
+    _selfDestructTimer = [timer intValue];
+    
+    if (_selfDestructTimer < 0) {
+        self.clockButton.hidden = YES;
+        self.textContainerInset = UIEdgeInsetsMake(8.0, 4.0, 8.0, 0);
+
+    } else {
+        self.clockButton.hidden = NO;
+        NSString *timerText = @"⌛";
+        if (_selfDestructTimer > 0) {
+            NSArray *components = [TGStringUtils stringComponentsForMessageTimerSeconds: _selfDestructTimer];
+            if ([components componentsJoinedByString:@""].length > 1) {
+                timerText = [components componentsJoinedByString:@""];
+            }
+        }
+        [self.clockButton setTitle: timerText forState:UIControlStateNormal];
+        [self.clockButton setTitle: timerText forState:UIControlStateHighlighted];
+        self.textContainerInset = UIEdgeInsetsMake(8.0, 4.0, 8.0, 36);
     }
 }
 

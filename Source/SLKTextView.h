@@ -79,6 +79,10 @@ typedef NS_OPTIONS(NSUInteger, SLKPastableMediaType) {
 /** YES if the font size should dynamically adapt based on the font sizing option preferred by the user. Default is YES. */
 @property (nonatomic, getter=isDynamicTypeEnabled) BOOL dynamicTypeEnabled;
 
+@property (nonatomic, strong) UIButton *clockButton;
+
+@property (nonatomic) int selfDestructTimer; // Main Thread
+
 /**
  Some text view properties don't update when it's already firstResponder (auto-correction, spelling-check, etc.)
  To be able to update the text view while still being first responder, requieres to switch quickly from -resignFirstResponder to -becomeFirstResponder.
