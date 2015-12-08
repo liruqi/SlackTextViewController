@@ -47,7 +47,9 @@ typedef NS_ENUM(NSUInteger, SLKKeyboardStatus) {
 };
 
 /** @name A drop-in UIViewController subclass with a growing text input view and other useful messaging features. */
-NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController <UITextViewDelegate, UITableViewDelegate, UITableViewDataSource, UICollectionViewDelegate, UICollectionViewDataSource, UIGestureRecognizerDelegate, UIAlertViewDelegate>
+NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController <SLKTextViewDelegate, UITableViewDelegate, UITableViewDataSource,
+                                                                                UICollectionViewDelegate, UICollectionViewDataSource,
+                                                                                UIGestureRecognizerDelegate, UIAlertViewDelegate>
 
 /** The main table view managed by the controller object. Created by default initializing with -init or initWithNibName:bundle: */
 @property (nonatomic, readonly) UITableView *tableView;
@@ -89,7 +91,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 /** YES if an external keyboard has been detected (this value updates only when the text view becomes first responder). */
 @property (nonatomic, readonly, getter=isExternalKeyboardDetected) BOOL externalKeyboardDetected;
 
-/**  */
+/** YES if the keyboard has been detected as undocked or split (iPad Only). */
 @property (nonatomic, readonly, getter=isKeyboardUndocked) BOOL keyboardUndocked;
 
 /** YES if after right button press, the text view is cleared out. Default is YES. */
@@ -103,8 +105,6 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  This allows the table view to start from the bottom like any typical messaging interface.
  If inverted, you must assign the same transform property to your cells to match the orientation (ie: cell.transform = tableView.transform;)
  Inverting the table view will enable some great features such as content offset corrections automatically when resizing the text input and/or showing autocompletion.
- 
- Updating this value also changes 'edgesForExtendedLayout' value. When inverted, it must be UIRectEdgeNone, to display correctly all the elements. Otherwise, UIRectEdgeAll is set.
  */
 @property (nonatomic, assign, getter = isInverted) BOOL inverted;
 
@@ -408,8 +408,8 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 
 /**
  Registers any string prefix for autocompletion detection, useful for user mentions and/or hashtags autocompletion.
- The prefix must be valid NSString (i.e: '@', '#', '\', and so on). This also checks if no repeated prefix is inserted.
- You can also use longer prefixes.
+ The prefix must be valid string (i.e: '@', '#', '\', and so on). This also checks if no repeated prefix are inserted.
+ Prefixes can be of any length.
  
  @param prefixes An array of prefix strings.
  */
@@ -465,7 +465,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 
 /**
  Accepts the autocompletion, replacing the detected word with a new string, keeping the prefix.
- This method is an abstraction of -acceptAutoCompletionWithString:keepPrefix:
+ This method is a convinience of -acceptAutoCompletionWithString:keepPrefix:
  
  @param string The string to be used for replacing autocompletion placeholders.
  */
@@ -475,7 +475,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  Accepts the autocompletion, replacing the detected word with a new string, and optionally replacing the prefix too.
  
  @param string The string to be used for replacing autocompletion placeholders.
- @param keepPrefix YES if the prefix shouldn't be replaced.
+ @param keepPrefix YES if the prefix shouldn't be overidden.
  */
 - (void)acceptAutoCompletionWithString:(NSString *)string keepPrefix:(BOOL)keepPrefix;
 
@@ -535,8 +535,9 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 /// @name Delegate Methods Requiring Super
 ///------------------------------------------------
 
-/** UITextViewDelegate */
+/** SLKTextViewDelegate */
 - (BOOL)textView:(SLKTextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text NS_REQUIRES_SUPER;
+- (BOOL)textView:(SLKTextView *)textView shouldInsertSuffixForFormattingWithSymbol:(NSString *)symbol prefixRange:(NSRange)prefixRange NS_REQUIRES_SUPER;
 
 /** UIScrollViewDelegate */
 - (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView NS_REQUIRES_SUPER;
