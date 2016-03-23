@@ -11,14 +11,15 @@
 #import "MessageTextView.h"
 #import "TypingIndicatorView.h"
 #import "Message.h"
+#import <Firebase/Firebase.h>
 
 #import <LoremIpsum/LoremIpsum.h>
+
+#define kFirechatNS @"https://firechat-ios.firebaseio-demo.com/"
 
 #define DEBUG_CUSTOM_TYPING_INDICATOR 0
 
 @interface MessageViewController ()
-
-@property (nonatomic, strong) NSMutableArray *messages;
 
 @property (nonatomic, strong) NSArray *users;
 @property (nonatomic, strong) NSArray *channels;
@@ -30,6 +31,12 @@
 @property (nonatomic, strong) UIWindow *pipWindow;
 
 @property (nonatomic, weak) Message *editingMessage;
+
+#pragma mark Firechat
+//@property (nonatomic, strong) NSString* name;
+@property (nonatomic, strong) NSMutableArray* chat;
+@property (nonatomic, strong) Firebase* firebase;
+@property (nonatomic) BOOL newMessagesOnTop;
 
 @end
 
@@ -120,6 +127,52 @@
     [self.textView registerMarkdownFormattingSymbol:@"`" withTitle:@"Code"];
     [self.textView registerMarkdownFormattingSymbol:@"```" withTitle:@"Preformatted"];
     [self.textView registerMarkdownFormattingSymbol:@">" withTitle:@"Quote"];
+    
+    // Initialize array that will store chat messages.
+    self.chat = [[NSMutableArray alloc] init];
+    
+    // Initialize the root of our Firebase namespace.
+    self.firebase = [[Firebase alloc] initWithUrl:kFirechatNS];
+    
+    // Pick a random number between 1-1000 for our username.
+    //self.name = [NSString stringWithFormat:@"Guest%d", arc4random() % 1000];
+    
+    // Decide whether or not to reverse the messages
+    _newMessagesOnTop = YES;
+    
+    // This allows us to check if these were messages already stored on the server
+    // when we booted up (YES) or if they are new messages since we've started the app.
+    // This is so that we can batch together the initial messages' reloadData for a perf gain.
+    __block BOOL initialAdds = YES;
+    
+    [self.firebase observeEventType:FEventTypeChildAdded withBlock:^(FDataSnapshot *snapshot) {
+        // Add the chat message to the array.
+        NSError *e = nil;
+        Message *msg = [[Message alloc] initWithDictionary:snapshot.value error:& e];
+        if (e) {
+            NSLog(@"Failed to load message: %@ %@", snapshot.value, e);
+            return;
+        }
+        if (_newMessagesOnTop) {
+            [self.chat insertObject:msg atIndex:0];
+        } else {
+            [self.chat addObject:msg];
+        }
+        
+        // Reload the table view so the new message will show up.
+        if (!initialAdds) {
+            [self.tableView reloadData];
+        }
+    }];
+    
+    // Value event fires right after we get the events already stored in the Firebase repo.
+    // We've gotten the initial messages stored on the server, and we want to run reloadData on the batch.
+    // Also set initialAdds=NO so that we'll reload after each additional childAdded event.
+    [self.firebase observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+        // Reload the table view so that the intial messages show up
+        [self.tableView reloadData];
+        initialAdds = NO;
+    }];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -137,6 +190,7 @@
 
 - (void)configureDataSource
 {
+    /*
     NSMutableArray *array = [[NSMutableArray alloc] init];
     
     for (int i = 0; i < 100; i++) {
@@ -151,8 +205,10 @@
     NSArray *reversed = [[array reverseObjectEnumerator] allObjects];
     
     self.messages = [[NSMutableArray alloc] initWithArray:reversed];
-    
+      */
     self.users = @[@"Allen", @"Anna", @"Alicia", @"Arnold", @"Armando", @"Antonio", @"Brad", @"Catalaya", @"Christoph", @"Emerson", @"Eric", @"Everyone", @"Steve"];
+    
+
     self.channels = @[@"General", @"Random", @"iOS", @"Bugs", @"Sports", @"Android", @"UI", @"SSB"];
     self.emojis = @[@"-1", @"m", @"man", @"machine", @"block-a", @"block-b", @"bowtie", @"boar", @"boat", @"book", @"bookmark", @"neckbeard", @"metal", @"fu", @"feelsgood"];
     self.commands = @[@"msg", @"call", @"text", @"skype", @"kick", @"invite"];
@@ -268,13 +324,13 @@
 
 - (void)editCellMessage:(UIGestureRecognizer *)gesture
 {
-    MessageTableViewCell *cell = (MessageTableViewCell *)gesture.view;
-    
-    self.editingMessage = self.messages[cell.indexPath.row];
-    
-    [self editText:self.editingMessage.text];
-    
-    [self.tableView scrollToRowAtIndexPath:cell.indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+//    MessageTableViewCell *cell = (MessageTableViewCell *)gesture.view;
+//    
+//    self.editingMessage = self.messages[cell.indexPath.row];
+//    
+//    [self editText:self.editingMessage.text];
+//    
+//    [self.tableView scrollToRowAtIndexPath:cell.indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
 }
 
 - (void)editRandomMessage:(id)sender
@@ -291,14 +347,14 @@
         return;
     }
     
-    NSInteger lastSectionIndex = [self.tableView numberOfSections]-1;
-    NSInteger lastRowIndex = [self.tableView numberOfRowsInSection:lastSectionIndex]-1;
-    
-    Message *lastMessage = [self.messages objectAtIndex:lastRowIndex];
-    
-    [self editText:lastMessage.text];
-    
-    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:lastRowIndex inSection:lastSectionIndex] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+//    NSInteger lastSectionIndex = [self.tableView numberOfSections]-1;
+//    NSInteger lastRowIndex = [self.tableView numberOfRowsInSection:lastSectionIndex]-1;
+//    
+//    Message *lastMessage = [self.messages objectAtIndex:lastRowIndex];
+//    
+//    [self editText:lastMessage.text];
+//    
+//    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:lastRowIndex inSection:lastSectionIndex] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
 }
 
 - (void)togglePIPWindow:(id)sender
@@ -401,13 +457,17 @@
 
 - (void)didPressRightButton:(id)sender
 {
+    [[self.firebase childByAutoId] setValue:@{@"name" : [LoremIpsum name], @"text": self.textView.text}];
+
     // Notifies the view controller when the right button's action has been triggered, manually or by using the keyboard return key.
     
     // This little trick validates any pending auto-correction or auto-spelling just after hitting the 'Send' button
+    
+    /*
     [self.textView refreshFirstResponder];
     
     Message *message = [Message new];
-    message.username = [LoremIpsum name];
+    message.name = [LoremIpsum name];
     message.text = [self.textView.text copy];
     
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
@@ -415,7 +475,7 @@
     UITableViewScrollPosition scrollPosition = self.inverted ? UITableViewScrollPositionBottom : UITableViewScrollPositionTop;
     
     [self.tableView beginUpdates];
-    [self.messages insertObject:message atIndex:0];
+    [self.chat insertObject:message atIndex:0];
     [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:rowAnimation];
     [self.tableView endUpdates];
     
@@ -424,7 +484,7 @@
     // Fixes the cell from blinking (because of the transform, when using translucent cells)
     // See https://github.com/slackhq/SlackTextViewController/issues/94#issuecomment-69929927
     [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-    
+    */
     [super didPressRightButton:sender];
 }
 
@@ -598,7 +658,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if ([tableView isEqual:self.tableView]) {
-        return self.messages.count;
+        return self.chat.count;
     }
     else {
         return self.searchResult.count;
@@ -624,9 +684,9 @@
         [cell addGestureRecognizer:longPress];
     }
 
-    Message *message = self.messages[indexPath.row];
+    Message *message = self.chat[indexPath.row];
     
-    cell.titleLabel.text = message.username;
+    cell.titleLabel.text = message.name;
     cell.bodyLabel.text = message.text;
     
     cell.indexPath = indexPath;
@@ -662,7 +722,7 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if ([tableView isEqual:self.tableView]) {
-        Message *message = self.messages[indexPath.row];
+        Message *message = self.chat[indexPath.row];
         
         NSMutableParagraphStyle *paragraphStyle = [NSMutableParagraphStyle new];
         paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
@@ -676,7 +736,7 @@
         CGFloat width = CGRectGetWidth(tableView.frame)-kMessageTableViewCellAvatarHeight;
         width -= 25.0;
         
-        CGRect titleBounds = [message.username boundingRectWithSize:CGSizeMake(width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:NULL];
+        CGRect titleBounds = [message.name boundingRectWithSize:CGSizeMake(width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:NULL];
         CGRect bodyBounds = [message.text boundingRectWithSize:CGSizeMake(width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:NULL];
         
         if (message.text.length == 0) {

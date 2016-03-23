@@ -8,10 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <JSONModel/JSONModel.h>
 
-@interface Message : NSObject
+@interface Message : JSONModel
 
-@property (nonatomic, strong) NSString *username;
+@property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSString *text;
 
 @end

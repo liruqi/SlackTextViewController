@@ -1,17 +1,23 @@
 PODS:
+  - Firebase (2.5.1)
+  - JSONModel (1.2.0)
   - LoremIpsum (1.0.0)
   - SlackTextViewController (1.9.1)
 
 DEPENDENCIES:
+  - Firebase (>= 2.5.0)
+  - JSONModel
   - LoremIpsum (~> 1.0)
   - SlackTextViewController (from `../SlackTextViewController.podspec`)
 
 EXTERNAL SOURCES:
   SlackTextViewController:
-    :path: "../SlackTextViewController.podspec"
+    :path: ../SlackTextViewController.podspec
 
 SPEC CHECKSUMS:
+  Firebase: 3565ea88b830f28f2c77ecc524622bc71a20d085
+  JSONModel: 12523685c4b623553ccf844bbbf7007624317b2c
   LoremIpsum: 9029c55d36501b2ee0b05cc9ecda11d3a0479160
   SlackTextViewController: 6b0d1030c53937226fc5358f217af2a34fc211cf
 
-COCOAPODS: 0.38.2
+COCOAPODS: 0.39.0

@@ -52,7 +52,6 @@
 		9F4466C51C9A1B6B0001609A /* MessageTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F7C6BA41A6E208E006E3FAB /* MessageTextView.m */; };
 		9F4466C71C9A1B6B0001609A /* TypingIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FF04E581B3F7A04004C3BED /* TypingIndicatorView.m */; };
 		F556AFAE1BA7B41F009898BD /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F556AFAD1BA7B41F009898BD /* QuartzCore.framework */; };
-		F56A8EBB1C5EFC7F00C2B5A7 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = F56A8EBA1C5EFC7F00C2B5A7 /* README.md */; };
 		F5CD59211C9FE0EC00DD9A4E /* MessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A1CC971C542EB600908ECB /* MessageViewController.swift */; };
 		F5DE01401B9679C4005E9082 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4F86BF7619F011D0007A3D4A /* LaunchScreen.xib */; };
 /* End PBXBuildFile section */
@@ -107,7 +106,6 @@
 		DDFA9095EABC480682E6396C /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E76FE7634642D0C745F673A5 /* libPods-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F556AFAD1BA7B41F009898BD /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		F56A8EBA1C5EFC7F00C2B5A7 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		F5A1CC971C542EB600908ECB /* MessageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -198,7 +196,6 @@
 		4F3EDB40199ED00F004C15D6 = {
 			isa = PBXGroup;
 			children = (
-				F56A8EBA1C5EFC7F00C2B5A7 /* README.md */,
 				4F86BF8B19F011E9007A3D4A /* Examples */,
 				4F1AD51C19E727640027043E /* Templates */,
 				4F3EDB4B199ED00F004C15D6 /* Frameworks */,
@@ -350,6 +347,7 @@
 				4F3EDB46199ED00F004C15D6 /* Frameworks */,
 				4F3EDB47199ED00F004C15D6 /* Resources */,
 				598FDC5936E74A05A38CC639 /* Copy Pods Resources */,
+				18D2DA532498390D9BD32783 /* Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -428,7 +426,7 @@
 				ORGANIZATIONNAME = "Slack Technologies, Inc.";
 				TargetAttributes = {
 					4F3EDB48199ED00F004C15D6 = {
-						DevelopmentTeam = S6MX3RA9ZM;
+						DevelopmentTeam = M54LAUT7S6;
 					};
 					4F86BF6419F011D0007A3D4A = {
 						CreatedOnToolsVersion = 6.0.1;
@@ -505,6 +503,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		18D2DA532498390D9BD32783 /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		57A4299BBA1384EEA0F08157 /* Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -638,7 +651,6 @@
 				4F86BF9519F01234007A3D4A /* MessageTableViewCell.m in Sources */,
 				4FF04E591B3F7A04004C3BED /* TypingIndicatorView.m in Sources */,
 				4F3EDB59199ED00F004C15D6 /* main.m in Sources */,
-				F56A8EBB1C5EFC7F00C2B5A7 /* README.md in Sources */,
 				4F32561E1AA77431008C1DD9 /* MessageTextView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -808,7 +820,7 @@
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Messenger-Programatic/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.slack.Messenger;
+				PRODUCT_BUNDLE_IDENTIFIER = info.liruqi.com.slack.Messenger;
 				PRODUCT_NAME = Messenger;
 				PROVISIONING_PROFILE = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
@@ -831,7 +843,7 @@
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Messenger-Programatic/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.slack.Messenger;
+				PRODUCT_BUNDLE_IDENTIFIER = info.liruqi.com.slack.Messenger;
 				PRODUCT_NAME = Messenger;
 				PROVISIONING_PROFILE = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
