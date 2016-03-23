@@ -4,5 +4,6 @@ workspace 'Messenger.xcworkspace'
 platform :ios, '7.0'
 
 pod 'SlackTextViewController', :path => '../SlackTextViewController.podspec'
-
 pod 'LoremIpsum', '~> 1.0'
+pod 'Firebase', '>= 2.5.0'
+pod 'JSONModel'
